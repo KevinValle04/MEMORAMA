@@ -15,6 +15,11 @@ public class JuegoMemorama {
     private String[] nombresJugadores;
     private int[] puntajes;
     private JLabel turnoLabel;
+    private JPanel marcadorPanel;
+    private JLabel[] etiquetasPuntaje;
+    private static final String RUTA_REVERSO = "reverso.png";
+
+
 
     public JuegoMemorama() {
         tarjetas = new ArrayList<>();
@@ -34,42 +39,91 @@ public class JuegoMemorama {
             tarjetas.add(new TarjetaTriangulo("Triángulo " + i));
             tarjetas.add(new TarjetaHexagono("Hexágono " + i));
             tarjetas.add(new TarjetaEstrella("Estrella " + i));
+            tarjetas.add(new TarjetaRombo("Rombo " + i)); // Nueva figura añadida
         }
     }
+
 
     private void barajar() {
         Collections.shuffle(tarjetas);
     }
 
     public void iniciarJuego(JFrame frame) {
-        // Preguntar por el número de jugadores
+        // Preguntar por número de jugadores
         String[] opciones = {"2", "3", "4"};
-        String seleccion = (String) JOptionPane.showInputDialog(frame, "Selecciona el número de jugadores:",
-                "Número de Jugadores", JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+        String seleccion = (String) JOptionPane.showInputDialog(
+                frame,
+                "Selecciona el número de jugadores:",
+                "Número de Jugadores",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]
+        );
 
         if (seleccion != null) {
             numJugadores = Integer.parseInt(seleccion);
-            puntajes = new int[numJugadores];  // Asegura que el arreglo de puntajes tenga el tamaño adecuado
+            nombresJugadores = new String[numJugadores];
+            puntajes = new int[numJugadores];
+            etiquetasPuntaje = new JLabel[numJugadores];
 
-            // Pedir nombres de los jugadores
+            // Pedir nombres
             for (int i = 0; i < numJugadores; i++) {
-                nombresJugadores[i] = JOptionPane.showInputDialog(frame, "Ingresa el nombre del Jugador " + (i + 1));
+                nombresJugadores[i] = JOptionPane.showInputDialog(
+                        frame,
+                        "Ingresa el nombre del Jugador " + (i + 1)
+                );
             }
 
-            // Mostrar tablero
+            // Crear panel marcador lateral
+            marcadorPanel = new JPanel();
+            marcadorPanel.setLayout(new BoxLayout(marcadorPanel, BoxLayout.Y_AXIS));
+            marcadorPanel.setBorder(BorderFactory.createTitledBorder("Marcador"));
+            marcadorPanel.setBackground(new Color(250, 250, 250));
+            marcadorPanel.setPreferredSize(new Dimension(200, 0));
+
+            for (int i = 0; i < numJugadores; i++) {
+                etiquetasPuntaje[i] = new JLabel(nombresJugadores[i] + ": 0 puntos");
+                etiquetasPuntaje[i].setFont(new Font("Segoe UI", Font.BOLD, 20));
+                etiquetasPuntaje[i].setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                marcadorPanel.add(etiquetasPuntaje[i]);
+            }
+
+            frame.getContentPane().add(marcadorPanel, BorderLayout.EAST);
+
+            // Mostrar tablero y turno inicial
             mostrarTablero(frame);
-            // Mostrar el primer turno
             actualizarTurnoLabel(frame);
         }
     }
 
+    private ImageIcon escalarImagen(ImageIcon original, int ancho, int alto) {
+        Image imagenOriginal = original.getImage();
+        Image imagenEscalada = imagenOriginal.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+        return new ImageIcon(imagenEscalada);
+    }
+
+
+    private void actualizarMarcador() {
+        for (int i = 0; i < numJugadores; i++) {
+            etiquetasPuntaje[i].setText(nombresJugadores[i] + ": " + puntajes[i] + " puntos");
+        }
+    }
+
+
     public void mostrarTablero(JFrame frame) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 4)); // Cambia las filas y columnas si es necesario
+        JPanel panelCentral = new JPanel();
+        panelCentral.setLayout(new GridLayout(4, 4, 10, 10)); // espacios entre botones
+        panelCentral.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panelCentral.setBackground(Color.GRAY); // Fondo limpio
 
         for (int i = 0; i < tarjetas.size(); i++) {
             JButton boton = new JButton();
-            boton.setIcon(new ImageIcon("C:\\Users\\Usuario\\IdeaProjects\\Memorama\\src\\Imagenes\\Reverso.png"));
+            boton.setPreferredSize(new Dimension(80, 80));
+            boton.setBackground(new Color(240, 240, 240));
+            boton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            boton.setFocusPainted(false);
+            boton.setIcon(new ImageIcon("Reverso.png"));
             int finalI = i;
 
             boton.addActionListener(e -> {
@@ -77,7 +131,8 @@ public class JuegoMemorama {
                     return;
                 }
 
-                boton.setIcon(tarjetas.get(finalI).getIcono());
+                boton.setIcon(escalarImagen(tarjetas.get(finalI).getIcono(), boton.getWidth(), boton.getHeight()));
+
 
                 if (primeraSeleccionada == null) {
                     primeraSeleccionada = tarjetas.get(finalI);
@@ -87,27 +142,26 @@ public class JuegoMemorama {
                     Tarjeta segundaSeleccionada = tarjetas.get(finalI);
                     JButton botonSegundo = boton;
 
-                    // Comparar después de medio segundo
                     javax.swing.Timer timer = new javax.swing.Timer(500, ev -> {
                         if (primeraSeleccionada.getFigura().equals(segundaSeleccionada.getFigura())) {
                             botonPrimero.setEnabled(false);
                             botonSegundo.setEnabled(false);
                             aciertos++;
-                            // Asignar el punto al jugador actual (por ejemplo, en turno 0, 1, etc.)
                             puntajes[turnos % numJugadores]++;
+                            actualizarMarcador();
                             if (aciertos == tarjetas.size() / 2) {
                                 mostrarGanador(frame);
                             }
                         } else {
-                            botonPrimero.setIcon(new ImageIcon("imagenes/reverso.png"));
-                            botonSegundo.setIcon(new ImageIcon("imagenes/reverso.png"));
+                            botonPrimero.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonPrimero.getWidth(), botonPrimero.getHeight()));
+                            botonSegundo.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonSegundo.getWidth(), botonSegundo.getHeight()));
+
+                            turnos++;
                         }
 
                         primeraSeleccionada = null;
                         botonPrimero = null;
                         bloqueado = false;
-                        turnos++;
-                        // Actualizar el turno
                         actualizarTurnoLabel(frame);
                     });
                     timer.setRepeats(false);
@@ -116,11 +170,12 @@ public class JuegoMemorama {
             });
 
             botones.add(boton);
-            panel.add(boton);
+            panelCentral.add(boton);
         }
 
-        frame.getContentPane().add(panel, BorderLayout.CENTER);
+        frame.getContentPane().add(panelCentral, BorderLayout.CENTER);
     }
+
 
     private void actualizarTurnoLabel(JFrame frame) {
         if (turnos < numJugadores) {

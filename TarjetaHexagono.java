@@ -1,6 +1,6 @@
 public class TarjetaHexagono extends Tarjeta {
     public TarjetaHexagono(String id) {
-        super(id, "Hexágono", "C:\\Users\\Usuario\\IdeaProjects\\Memorama\\src\\Imagenes\\Hexagono.png"); // Ruta de la imagen del hexágono
+        super(id, "Hexágono", "Hexagono.png"); // Ruta de la imagen del hexágono
     }
 
     @Override

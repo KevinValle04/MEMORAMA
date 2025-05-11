@@ -1,6 +1,6 @@
 public class TarjetaEstrella extends Tarjeta {
     public TarjetaEstrella(String id) {
-        super(id, "Estrella", "C:\\Users\\Usuario\\IdeaProjects\\Memorama\\src\\Imagenes\\Estrella.png"); // Ruta de la imagen de la estrella
+        super(id, "Estrella", "Estrella.png"); // Ruta de la imagen de la estrella
     }
 
     @Override

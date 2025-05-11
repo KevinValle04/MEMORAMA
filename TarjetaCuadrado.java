@@ -1,6 +1,6 @@
 public class TarjetaCuadrado extends Tarjeta {
     public TarjetaCuadrado(String id) {
-        super(id, "Cuadrado", "C:\\Users\\Usuario\\IdeaProjects\\Memorama\\src\\Imagenes\\Cuadrado.png");
+        super(id, "Cuadrado", "Cuadrado.png");
     }
 
     @Override

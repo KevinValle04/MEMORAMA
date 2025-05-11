@@ -1,6 +1,6 @@
 public class TarjetaTriangulo extends Tarjeta {
     public TarjetaTriangulo(String id) {
-        super(id, "Triangulo", "C:\\Users\\Usuario\\IdeaProjects\\Memorama\\src\\Imagenes\\Triangulo.png");
+        super(id, "Triangulo", "Triangulo.png");
     }
 
     @Override
