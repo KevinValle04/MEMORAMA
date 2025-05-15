@@ -17,41 +17,31 @@ public class JuegoMemorama {
     private JLabel turnoLabel;
     private JPanel marcadorPanel;
     private JLabel[] etiquetasPuntaje;
-    private static final String RUTA_REVERSO = "reverso.png";
+    private static final String RUTA_REVERSO = "D:\\descargas\\Memorama (1)\\src\\imagenes\\reverso.png";
+    private Tematica tematica;
+    private JPanel panelCentral;
 
-
-
-    public JuegoMemorama() {
+    public JuegoMemorama(Tematica tematica) {
+        this.tematica = tematica;
         tarjetas = new ArrayList<>();
         botones = new ArrayList<>();
         turnos = 0;
         numJugadores = 0;
         nombresJugadores = new String[4];  // Para soportar hasta 4 jugadores
         puntajes = new int[4];  // Para soportar hasta 4 jugadores
-        crearMazo();
-        barajar();
-    }
-
-    private void crearMazo() {
-        for (int i = 0; i < 2; i++) {
-            tarjetas.add(new TarjetaCirculo("Círculo " + i));
-            tarjetas.add(new TarjetaCuadrado("Cuadrado " + i));
-            tarjetas.add(new TarjetaTriangulo("Triángulo " + i));
-            tarjetas.add(new TarjetaHexagono("Hexágono " + i));
-            tarjetas.add(new TarjetaEstrella("Estrella " + i));
-            tarjetas.add(new TarjetaRombo("Rombo " + i)); // Nueva figura añadida
-        }
-    }
-
-
-    private void barajar() {
+        crearMazo(); // ahora usará la temática para generar las tarjetas
         Collections.shuffle(tarjetas);
     }
 
     public void iniciarJuego(JFrame frame) {
-        // Preguntar por número de jugadores
+        // Ya no pedimos la temática aquí
+
+        tarjetas = tematica.generarTarjetas();
+        Collections.shuffle(tarjetas);
+
+        // Selección de número de jugadores
         String[] opciones = {"2", "3", "4"};
-        String seleccion = (String) JOptionPane.showInputDialog(
+        String seleccionJugadores = (String) JOptionPane.showInputDialog(
                 frame,
                 "Selecciona el número de jugadores:",
                 "Número de Jugadores",
@@ -61,8 +51,8 @@ public class JuegoMemorama {
                 opciones[0]
         );
 
-        if (seleccion != null) {
-            numJugadores = Integer.parseInt(seleccion);
+        if (seleccionJugadores != null) {
+            numJugadores = Integer.parseInt(seleccionJugadores);
             nombresJugadores = new String[numJugadores];
             puntajes = new int[numJugadores];
             etiquetasPuntaje = new JLabel[numJugadores];
@@ -97,12 +87,12 @@ public class JuegoMemorama {
         }
     }
 
+
     private ImageIcon escalarImagen(ImageIcon original, int ancho, int alto) {
         Image imagenOriginal = original.getImage();
         Image imagenEscalada = imagenOriginal.getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
         return new ImageIcon(imagenEscalada);
     }
-
 
     private void actualizarMarcador() {
         for (int i = 0; i < numJugadores; i++) {
@@ -110,12 +100,11 @@ public class JuegoMemorama {
         }
     }
 
-
     public void mostrarTablero(JFrame frame) {
-        JPanel panelCentral = new JPanel();
-        panelCentral.setLayout(new GridLayout(4, 4, 10, 10)); // espacios entre botones
+        panelCentral = new JPanel();  // Guarda la referencia en el atributo de la clase
+        panelCentral.setLayout(new GridLayout(4, 4, 10, 10));
         panelCentral.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panelCentral.setBackground(Color.GRAY); // Fondo limpio
+        panelCentral.setBackground(Color.GRAY);
 
         for (int i = 0; i < tarjetas.size(); i++) {
             JButton boton = new JButton();
@@ -123,7 +112,7 @@ public class JuegoMemorama {
             boton.setBackground(new Color(240, 240, 240));
             boton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             boton.setFocusPainted(false);
-            boton.setIcon(new ImageIcon("Reverso.png"));
+            boton.setIcon(new ImageIcon(RUTA_REVERSO));
             int finalI = i;
 
             boton.addActionListener(e -> {
@@ -132,7 +121,6 @@ public class JuegoMemorama {
                 }
 
                 boton.setIcon(escalarImagen(tarjetas.get(finalI).getIcono(), boton.getWidth(), boton.getHeight()));
-
 
                 if (primeraSeleccionada == null) {
                     primeraSeleccionada = tarjetas.get(finalI);
@@ -147,15 +135,36 @@ public class JuegoMemorama {
                             botonPrimero.setEnabled(false);
                             botonSegundo.setEnabled(false);
                             aciertos++;
-                            puntajes[turnos % numJugadores]++;
+
+                            int puntosGanados = 1; // Valor por defecto
+                            if (tematica instanceof TematicaFiguras) {
+                                puntosGanados = ((TematicaFiguras) tematica).obtenerValorFigura(primeraSeleccionada.getFigura());
+                                JOptionPane.showMessageDialog(
+                                        frame,
+                                        "¡Pareja de " + primeraSeleccionada.getFigura() + "! Ganaste " + puntosGanados + " puntos.",
+                                        "¡Buen trabajo!",
+                                        JOptionPane.INFORMATION_MESSAGE
+                                );
+                            }
+
+                            puntajes[turnos % numJugadores] += puntosGanados;
                             actualizarMarcador();
+
+                            // Mostrar detalle especial si la temática lo tiene
+                            if (tematica instanceof TematicaAnimales) {
+                                ((TematicaAnimales) tematica).mostrarDatoCurioso(primeraSeleccionada.getFigura(), frame);
+                            }
+
+                            if (tematica instanceof TematicaEmojis) {
+                                ((TematicaEmojis) tematica).mostrarFondoTemporal(panelCentral);
+                            }
+
                             if (aciertos == tarjetas.size() / 2) {
                                 mostrarGanador(frame);
                             }
                         } else {
                             botonPrimero.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonPrimero.getWidth(), botonPrimero.getHeight()));
                             botonSegundo.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonSegundo.getWidth(), botonSegundo.getHeight()));
-
                             turnos++;
                         }
 
@@ -178,31 +187,51 @@ public class JuegoMemorama {
 
 
     private void actualizarTurnoLabel(JFrame frame) {
-        if (turnos < numJugadores) {
-            turnoLabel.setText("Es el turno de: " + nombresJugadores[turnos % numJugadores]);
-        } else {
-            turnoLabel.setText("Es el turno de: " + nombresJugadores[turnos % numJugadores]);
-        }
+        turnoLabel.setText("Es el turno de: " + nombresJugadores[turnos % numJugadores]);
     }
 
     private void mostrarGanador(JFrame frame) {
-        // Determinar el ganador (el jugador con más puntos)
         int maxPuntaje = -1;
-        int ganador = -1;
+        List<Integer> ganadores = new ArrayList<>();
 
-        for (int i = 0; i < numJugadores; i++) {
-            if (puntajes[i] > maxPuntaje) {
-                maxPuntaje = puntajes[i];
-                ganador = i;
+        // Encontrar el puntaje máximo
+        for (int puntaje : puntajes) {
+            if (puntaje > maxPuntaje) {
+                maxPuntaje = puntaje;
             }
         }
 
-        String mensaje = "El ganador es " + nombresJugadores[ganador] + " con " + maxPuntaje + " puntos!";
-        JOptionPane.showMessageDialog(frame, mensaje);
+        // Buscar a todos los jugadores con ese puntaje
+        for (int i = 0; i < puntajes.length; i++) {
+            if (puntajes[i] == maxPuntaje) {
+                ganadores.add(i);
+            }
+        }
+
+        // Mostrar resultado
+        if (ganadores.size() == 1) {
+            int indiceGanador = ganadores.get(0);
+            JOptionPane.showMessageDialog(frame, "¡Ganó " + nombresJugadores[indiceGanador] + " con " + maxPuntaje + " puntos!");
+        } else {
+            StringBuilder mensaje = new StringBuilder("¡Empate entre: ");
+            for (int i = 0; i < ganadores.size(); i++) {
+                mensaje.append(nombresJugadores[ganadores.get(i)]);
+                if (i < ganadores.size() - 1) {
+                    mensaje.append(", ");
+                }
+            }
+            mensaje.append(" con ").append(maxPuntaje).append(" puntos!");
+            JOptionPane.showMessageDialog(frame, mensaje.toString());
+        }
     }
 
-    // Método para inicializar el JLabel de turno
+
     public void setTurnoLabel(JLabel turnoLabel) {
         this.turnoLabel = turnoLabel;
     }
+
+    private void crearMazo() {
+        tarjetas = tematica.generarTarjetas(); // delega en la temática
+    }
+
 }

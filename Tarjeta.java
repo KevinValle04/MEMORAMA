@@ -1,9 +1,9 @@
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
-public abstract class Tarjeta {
-    protected String id;
-    protected String figura;
-    protected ImageIcon icono;
+public class Tarjeta {
+    private String id;
+    private String figura;
+    private ImageIcon icono;
 
     public Tarjeta(String id, String figura, String rutaImagen) {
         this.id = id;
@@ -23,5 +23,7 @@ public abstract class Tarjeta {
         return icono;
     }
 
-    public abstract void mostrar();
+    public void mostrar() {
+        System.out.println("Mostrando tarjeta de " + figura + " con id: " + id);
+    }
 }
