@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class TematicaEmojis extends Tematica {
     @Override
@@ -41,4 +42,15 @@ public class TematicaEmojis extends Tematica {
         timer.setRepeats(false);
         timer.start();
     }
+
+    public int puntosPorAcierto() {
+        return new Random().nextInt(3) + 1; // Devuelve 1, 2 o 3
+    }
+
+    public int puntosPorError() {
+        return 1; // o 2 si quieres que duela más 😅
+    }
+
+
+
 }

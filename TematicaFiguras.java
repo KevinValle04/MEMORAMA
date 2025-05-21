@@ -31,4 +31,16 @@ public class TematicaFiguras extends Tematica {
     public int obtenerValorFigura(String figura) {
         return valoresFiguras.getOrDefault(figura, 1); // Valor por defecto 1 si no se encuentra
     }
+
+    public String getValoresFiguras() {
+        StringBuilder mensaje = new StringBuilder("Valores por figura:\n");
+        mensaje.append("Estrella = 7 puntos\n");
+        mensaje.append("Hexágono = 5 puntos\n");
+        mensaje.append("Rombo = 6 puntos\n");
+        mensaje.append("Cuadrado = 10 puntos\n");
+        mensaje.append("Triángulo = 8 puntos\n");
+        mensaje.append("Círculo = 9 puntos");
+        return mensaje.toString();
+    }
+
 }

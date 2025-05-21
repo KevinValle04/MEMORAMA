@@ -37,6 +37,32 @@ public class JuegoMemorama {
         // Ya no pedimos la temática aquí
 
         tarjetas = tematica.generarTarjetas();
+
+        // Mostrar mensaje especial si la temática lo requiere
+        if (tematica instanceof TematicaFiguras) {
+            String valores = ((TematicaFiguras) tematica).getValoresFiguras();
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Has seleccionado la temática de Figuras.\nCada figura tiene un valor diferente:\n\n" + valores,
+                    "Diferencias de la temática",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else if (tematica instanceof TematicaAnimales) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Has seleccionado la temática de Animales.\nCada vez que aciertes una pareja, verás un dato curioso del animal.",
+                    "Diferencias de la temática",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else if (tematica instanceof TematicaEmojis) {
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "Has seleccionado la temática de Emojis.\n Cada acierto da 1-3 puntos.\n Cada error te resta un punto.",
+                    "Diferencias de la temática",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+
         Collections.shuffle(tarjetas);
 
         // Selección de número de jugadores
@@ -86,6 +112,7 @@ public class JuegoMemorama {
             actualizarTurnoLabel(frame);
         }
     }
+
 
 
     private ImageIcon escalarImagen(ImageIcon original, int ancho, int alto) {
@@ -147,7 +174,20 @@ public class JuegoMemorama {
                                 );
                             }
 
+                            puntosGanados = 1;
+
+                            if (tematica instanceof TematicaEmojis) {
+                                puntosGanados = ((TematicaEmojis) tematica).puntosPorAcierto();
+                                JOptionPane.showMessageDialog(
+                                        frame,
+                                        "¡Pareja de emojis acertada! Ganaste " + puntosGanados + " puntos ",
+                                        "¡Bien hecho!",
+                                        JOptionPane.INFORMATION_MESSAGE
+                                );
+                            }
+
                             puntajes[turnos % numJugadores] += puntosGanados;
+
                             actualizarMarcador();
 
                             // Mostrar detalle especial si la temática lo tiene
@@ -165,8 +205,25 @@ public class JuegoMemorama {
                         } else {
                             botonPrimero.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonPrimero.getWidth(), botonPrimero.getHeight()));
                             botonSegundo.setIcon(escalarImagen(new ImageIcon(RUTA_REVERSO), botonSegundo.getWidth(), botonSegundo.getHeight()));
+
+                            // Penalización especial para temática de Emojis
+                            if (tematica instanceof TematicaEmojis) {
+                                int penalizacion = ((TematicaEmojis) tematica).puntosPorError();
+                                int jugadorActual = turnos % numJugadores;
+                                puntajes[jugadorActual] = Math.max(0, puntajes[jugadorActual] - penalizacion);
+
+                                JOptionPane.showMessageDialog(
+                                        frame,
+                                        "Error. Se te restaron " + penalizacion + " punto(s).",
+                                        "Error",
+                                        JOptionPane.WARNING_MESSAGE
+                                );
+                                actualizarMarcador(); // Asegura que el cambio se vea en el marcador
+                            }
+
                             turnos++;
                         }
+
 
                         primeraSeleccionada = null;
                         botonPrimero = null;
@@ -231,7 +288,7 @@ public class JuegoMemorama {
     }
 
     private void crearMazo() {
-        tarjetas = tematica.generarTarjetas(); // delega en la temática
+        tarjetas = tematica.generarTarjetas(); 
     }
 
 }
